@@ -23,7 +23,7 @@ variableGroups:
   visible: true  
   variables:
   - compartment_ocid
-  - availablity_domain_name
+  - availability_domain_name
   - show_advanced 
 
 - title: Networking Optional Configuration
@@ -80,7 +80,7 @@ variables:
     title: "Region"
     description: "Choose region where you want to deploy the resources defined by this stack."
 
-  availablity_domain_name:
+  availability_domain_name:
     type: oci:identity:availabilitydomain:name
     required: true
     visibile: true
