@@ -1,0 +1,18 @@
+# Authentication
+tenancy_ocid         = "<tenancy_ocid>"
+user_ocid            = "<user_ocid>"
+fingerprint          = "<fingerprint>"
+private_key_path     = "<private_key_path>"
+
+# Region
+region = "<region>"
+
+# Compartment
+compartment_ocid = "<compartment_ocid>"
+
+# Number of Tomcat nodes (optional)
+numberOfNodes = 2
+
+# mysql_db_system_admin_password
+mysql_db_system_admin_password = "<mysql_db_system_admin_password>"
+
