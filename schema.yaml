@@ -18,6 +18,7 @@ variableGroups:
   - vcn_id
   - redis_subnet_id
   - use_private_subnet
+  - bastion_server_public_ip
   - availability_domain_number
 
 - title: Required Configuration
@@ -122,7 +123,8 @@ variables:
     type: boolean
     title: "Enable Redis Cluster?"
     description: "Check if you want to enable Redis Cluster (min 3 master + 3 replica nodes)."
-    default: 
+    default: true
+    visible: 
       and:
         - gt:
           - numberOfMasterNodes
@@ -130,7 +132,6 @@ variables:
         - gt:
           - numberOfReplicaNodes
           - 2 
-    visible: true 
 
   use_redis_oci_logging:
     type: boolean
@@ -207,7 +208,7 @@ variables:
   instance_shape:
     type: oci:core:instanceshape:name
     required: false
-    default: "VM.Standard.E3.Flex"
+    default: "VM.Standard.E4.Flex"
     title: "Instance shape for Redis compute instances"
     description: "Choose the shape of the VM used for Redis compute instances."
     dependsOn:
