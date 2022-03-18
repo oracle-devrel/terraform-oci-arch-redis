@@ -33,6 +33,17 @@ data "template_file" "redis_bootstrap_replica_template" {
   }
 }
 
+data "template_file" "redis_bootstrap_cluster_template" {
+  count      = var.cluster_enabled ? 1 : 0
+  template   = file("${path.module}/scripts/redis_bootstrap_cluster.sh")
+
+  vars = {
+    redis_master_private_ips_with_port  = local.redis_master_private_ips_with_port
+    redis_replica_private_ips_with_port = local.redis_replica_private_ips_with_port
+    redis_password                      = random_string.redis_password.result
+  }
+}
+
 resource "null_resource" "redis_master_bootstrap" {
   count      = var.numberOfMasterNodes
   depends_on = [oci_core_instance.redis_master, oci_core_instance.redis_replica]
@@ -106,8 +117,21 @@ resource "null_resource" "redis_replica_bootstrap" {
 resource "null_resource" "redis_cluster_startup" {
   count      = var.cluster_enabled ? 1 : 0
   depends_on = [null_resource.redis_master_bootstrap, null_resource.redis_replica_bootstrap]
-  #depends_on = [null_resource.redis_master_startup, null_resource.redis_replica_startup]
 
+  provisioner "file" {
+    connection {
+      type        = "ssh"
+      user        = "opc"
+      host        = data.oci_core_vnic.redis_master_vnic[0].public_ip_address
+      private_key = tls_private_key.public_private_key_pair.private_key_pem
+      script_path = "/home/opc/myssh.sh"
+      agent       = false
+      timeout     = "10m"
+    }
+
+    content     = data.template_file.redis_bootstrap_cluster_template[0].rendered
+    destination = "~/redis_bootstrap_cluster.sh"
+  }
   provisioner "remote-exec" {
     connection {
       type        = "ssh"
@@ -119,11 +143,8 @@ resource "null_resource" "redis_cluster_startup" {
       timeout     = "10m"
     }
     inline = [
-      "echo '=== Create REDIS CLUSTER from redis-master-1 node... ==='",
-      "sudo -u root /usr/local/bin/redis-cli --cluster create ${local.redis_master_private_ips_with_port}:6379 ${local.redis_replica_private_ips_with_port}:6379 -a ${random_string.redis_password.result} --cluster-replicas 1 --cluster-yes",
-      "echo '=== Cluster REDIS created from redis-master-1 node... ==='",
-      "echo 'cluster info' | /usr/local/bin/redis-cli -c -a ${random_string.redis_password.result}",
-      "echo 'cluster nodes' | /usr/local/bin/redis-cli -c -a ${random_string.redis_password.result}"
+      "chmod +x ~/redis_bootstrap_cluster.sh",
+      "sudo ~/redis_bootstrap_cluster.sh",
     ]
   }
 }

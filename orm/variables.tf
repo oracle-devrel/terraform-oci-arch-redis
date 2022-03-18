@@ -44,7 +44,7 @@ variable "use_private_subnet" {
 variable "bastion_server_public_ip" {
   default = ""
 }
- 
+
 variable "numberOfMasterNodes" {
   default = 3
 }
