@@ -1,4 +1,4 @@
-## Copyright (c) 2021 Oracle and/or its affiliates.
+## Copyright (c) 2022 Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 output "generated_ssh_private_key" {
@@ -6,29 +6,27 @@ output "generated_ssh_private_key" {
   sensitive = true
 }
 
-output "redis1_public_ip_address" {
-  value = data.oci_core_vnic.redis1_vnic.public_ip_address
+output "generated_ssh_public_key" {
+  value     = tls_private_key.public_private_key_pair.public_key_openssh
+  sensitive = true
 }
 
-output "redis2_public_ip_address" {
-  value = data.oci_core_vnic.redis2_vnic.public_ip_address
+output "redis-masters_private_ips" {
+  value = data.oci_core_vnic.redis_master_vnic.*.private_ip_address
 }
 
-output "redis3_public_ip_address" {
-  value = data.oci_core_vnic.redis3_vnic.public_ip_address
+output "redis-replicas_private_ips" {
+  value = data.oci_core_vnic.redis_replica_vnic.*.private_ip_address
 }
 
-output "redis4_public_ip_address" {
-  value = data.oci_core_vnic.redis4_vnic.public_ip_address
+output "redis-masters_private_ips_with_ports" {
+  value = local.redis_master_private_ips_with_port
 }
 
-output "redis5_public_ip_address" {
-  value = data.oci_core_vnic.redis5_vnic.public_ip_address
+output "redis-replicas_private_ips_with_ports" {
+  value = local.redis_replica_private_ips_with_port
 }
 
-output "redis6_public_ip_address" {
-  value = data.oci_core_vnic.redis6_vnic.public_ip_address
-}
 
 output "redis_password" {
   value = random_string.redis_password.result

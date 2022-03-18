@@ -13,6 +13,9 @@ firewall-offline-cmd  --zone=public --add-port=${redis_port2}/tcp
 firewall-offline-cmd  --zone=public --add-port=${sentinel_port}/tcp
 systemctl restart firewalld
 
+# To avoid warining: WARNING overcommit_memory is set to 0! Background save may fail under low memory condition.
+sysctl vm.overcommit_memory=1
+
 # Install wget and gcc
 yum install -y wget gcc
 
@@ -22,9 +25,13 @@ tar xvzf redis-${redis_version}.tar.gz
 cd redis-${redis_version}
 make install
 
-# Configure Sentinel
+export cluster_enabled='${cluster_enabled}'
+
+if [[ $cluster_enabled == "true" ]]; then
+# Configure Redis Config File
 cat << EOF > $REDIS_CONFIG_FILE
 port ${redis_port1}
+dir /home/redis/redis
 cluster-enabled yes
 cluster-config-file nodes.conf
 cluster-node-timeout 5000
@@ -32,29 +39,92 @@ cluster-slave-validity-factor 0
 appendonly yes
 requirepass ${redis_password}
 masterauth ${redis_password}
-EOF
 
-# Configure Sentinel
+EOF
+else
+# Configure Redis Config File
+cat << EOF > $REDIS_CONFIG_FILE
+port ${redis_port1}
+dir /home/redis/redis
+cluster-enabled no
+appendonly yes
+requirepass ${redis_password}
+masterauth ${redis_password}
+EOF
+fi 
+
+# Configure Sentinel Config File
 cat << EOF > $SENTINEL_CONFIG_FILE
 port ${sentinel_port}
+dir /home/redis/sentinel
+sentinel monitor ${master_fqdn} ${master_private_ip} ${redis_port1} 2
+sentinel auth-pass ${master_fqdn} ${redis_password}
+sentinel down-after-milliseconds ${master_fqdn} 60000
+sentinel failover-timeout ${master_fqdn} 180000
+sentinel parallel-syncs ${master_fqdn} 1
 
-sentinel monitor ${master1_fqdn} ${master1_private_ip} 6379 2
-sentinel down-after-milliseconds ${master1_fqdn} 60000
-sentinel failover-timeout ${master1_fqdn} 180000
-sentinel parallel-syncs ${master1_fqdn} 1
-
-sentinel monitor ${master2_fqdn} ${master2_private_ip} 6379 2
-sentinel down-after-milliseconds ${master2_fqdn} 10000
-sentinel failover-timeout ${master2_fqdn} 180000
-sentinel parallel-syncs ${master2_fqdn} 1
-
-sentinel monitor ${master3_fqdn} ${master3_private_ip} 6379 2
-sentinel down-after-milliseconds ${master3_fqdn} 10000
-sentinel failover-timeout ${master3_fqdn} 180000
-sentinel parallel-syncs ${master3_fqdn} 1
 EOF
 
 sleep 30
-#/usr/local/bin/redis-server $SENTINEL_CONFIG_FILE --sentinel --daemonize yes
-#/usr/local/bin/redis-server $REDIS_CONFIG_FILE
-#nohup /usr/local/bin/redis-server $SENTINEL_CONFIG_FILE --sentinel > /tmp/redis-server.log &
+
+# Checks if the redis user already exists before attempting to create one
+id -u redis &>/dev/null || sudo useradd redis
+mkdir /home/redis/redis
+chown -R redis:redis /home/redis/redis
+mkdir /home/redis/sentinel
+chown -R redis:redis /home/redis/sentinel
+
+# Configuring Redis Linux Service
+sudo tee /usr/lib/systemd/system/redis.service > /dev/null << EOF
+[Unit]
+Description=Redis In-Memory Data Store
+After=network.target
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=redis
+Group=redis
+LimitNOFILE=65536
+Type=notify
+ExecStart=/usr/local/bin/redis-server $REDIS_CONFIG_FILE --supervised systemd
+ExecStop=/usr/local/bin/redis-cli shutdown
+Restart=always
+RestartSec=3
+[Install]
+WantedBy=multi-user.target
+EOF
+
+chown -R redis:redis $REDIS_CONFIG_FILE
+chmod -R 755 $REDIS_CONFIG_FILE
+
+sudo systemctl daemon-reload
+sudo systemctl enable redis
+sudo systemctl restart redis
+sudo systemctl status redis
+
+# Configuring Sentinel Linux Service
+sudo tee /usr/lib/systemd/system/redis-sentinel.service > /dev/null << EOF
+[Unit]
+Description=Redis Sentinel
+After=network.target
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=redis
+Group=redis
+ExecStart=/usr/local/bin/redis-sentinel $SENTINEL_CONFIG_FILE
+ExecStop=/usr/local/bin/redis-cli -h 127.0.0.1 -p ${sentinel_port} shutdown
+Restart=always
+RestartSec=3
+[Install]
+WantedBy=multi-user.target
+EOF
+
+chown -R redis:redis $SENTINEL_CONFIG_FILE
+chmod -R 755 $SENTINEL_CONFIG_FILE
+
+systemctl daemon-reload
+systemctl enable redis-sentinel
+systemctl restart redis-sentinel
+systemctl status redis-sentinel
+

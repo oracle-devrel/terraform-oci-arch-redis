@@ -1,4 +1,4 @@
-## Copyright (c) 2021 Oracle and/or its affiliates.
+## Copyright (c) 2022 Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 variable "tenancy_ocid" {}
@@ -27,6 +27,10 @@ module "oci-arch-redis" {
   use_existing_vcn = true
   vcn_id           = oci_core_vcn.my_vcn.id
   redis_subnet_id  = oci_core_subnet.my_compute_subnet.id
+  # The simplest replication scenario (1 masterVM, 2 replicaVMs)
+  numberOfMasterNodes  = 1
+  numberOfReplicaNodes = 2
+  cluster_enabled      = false
 }
 
 output "generated_ssh_private_key" {

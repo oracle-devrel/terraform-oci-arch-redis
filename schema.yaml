@@ -1,4 +1,4 @@
-## Copyright (c) 2021 Oracle and/or its affiliates.
+## Copyright (c) 2022 Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 title: "Create typical six-node deployment of a Redis cluster on Oracle Cloud Infrastructure Compute instances"
@@ -17,6 +17,7 @@ variableGroups:
   - use_existing_vcn
   - vcn_id
   - redis_subnet_id
+  - use_private_subnet
   - availability_domain_number
 
 - title: Required Configuration
@@ -24,6 +25,9 @@ variableGroups:
   variables:
   - compartment_ocid
   - availability_domain_name
+  - numberOfMasterNodes
+  - numberOfReplicaNodes
+  - cluster_enabled
   - show_advanced 
 
 - title: Networking Optional Configuration
@@ -44,6 +48,7 @@ variableGroups:
   - redis_port1
   - redis_port2
   - sentinel_port
+  - use_redis_oci_logging
 
 - title: Compute Optional Configuration
   visible: 
@@ -113,14 +118,55 @@ variables:
     title: "Redis prefix"
     description: "Name the prefix for all OCI resources (compute, VCN, subnet) that will be created."
   
+  cluster_enabled:
+    type: boolean
+    title: "Enable Redis Cluster?"
+    description: "Check if you want to enable Redis Cluster (min 3 master + 3 replica nodes)."
+    default: 
+      and:
+        - gt:
+          - numberOfMasterNodes
+          - 2  
+        - gt:
+          - numberOfReplicaNodes
+          - 2 
+    visible: true 
+
+  use_redis_oci_logging:
+    type: boolean
+    title: "Use OCI Logging for Redis?"
+    description: "Check if you want to enable OCI Logging for Redis."
+    visible: true
+    default: false
+
   redis_version:
     type: enum
     required: false
-    default: "5.0.7"
+    default: "6.2.6"
     title: "Redis version"
     description: "Choose Redis version to be deployed."  
     enum:
-      - "5.0.7"
+      - "6.2.6"
+
+  numberOfMasterNodes:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 65535
+    multipleOf: 1
+    default: 3
+    title: "Number of Redis Master Nodes"
+    description: "Choose number of Redis Master Nodes (default=3)."
+
+  numberOfReplicaNodes:
+    type: number
+    required: false
+    minimum: 1
+    maximum: 65535
+    multipleOf: 1
+    default: 3
+    title: "Number of Redis Replica Nodes"
+    description: "Choose number of Redis Replica Nodes (default=3)."
 
   redis_port1:
     type: number
