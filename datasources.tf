@@ -1,4 +1,4 @@
-## Copyright (c) 2021 Oracle and/or its affiliates.
+## Copyright (c) 2022 Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 # Get list of availability domains
@@ -21,65 +21,30 @@ data "oci_core_images" "InstanceImageOCID" {
   }
 }
 
-data "oci_core_vnic_attachments" "redis1_vnics" {
+data "oci_core_vnic_attachments" "redis_master_vnics" {
+  count               = var.numberOfMasterNodes
   compartment_id      = var.compartment_ocid
   availability_domain = local.availability_domain_name
-  instance_id         = oci_core_instance.redis1.id
+  instance_id         = oci_core_instance.redis_master[count.index].id
 }
 
-data "oci_core_vnic" "redis1_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.redis1_vnics.vnic_attachments.0.vnic_id
+data "oci_core_vnic" "redis_master_vnic" {
+  count               = var.numberOfMasterNodes
+  vnic_id = data.oci_core_vnic_attachments.redis_master_vnics[count.index].vnic_attachments.0.vnic_id
 }
 
-data "oci_core_vnic_attachments" "redis2_vnics" {
+data "oci_core_vnic_attachments" "redis_replica_vnics" {
+  count               = var.numberOfReplicaNodes
   compartment_id      = var.compartment_ocid
   availability_domain = local.availability_domain_name
-  instance_id         = oci_core_instance.redis2.id
+  instance_id         = oci_core_instance.redis_replica[count.index].id
 }
 
-data "oci_core_vnic" "redis2_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.redis2_vnics.vnic_attachments.0.vnic_id
+data "oci_core_vnic" "redis_replica_vnic" {
+  count               = var.numberOfReplicaNodes
+  vnic_id             = data.oci_core_vnic_attachments.redis_replica_vnics[count.index].vnic_attachments.0.vnic_id
 }
 
-data "oci_core_vnic_attachments" "redis3_vnics" {
-  compartment_id      = var.compartment_ocid
-  availability_domain = local.availability_domain_name
-  instance_id         = oci_core_instance.redis3.id
-}
-
-data "oci_core_vnic" "redis3_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.redis3_vnics.vnic_attachments.0.vnic_id
-}
-
-data "oci_core_vnic_attachments" "redis4_vnics" {
-  compartment_id      = var.compartment_ocid
-  availability_domain = local.availability_domain_name
-  instance_id         = oci_core_instance.redis4.id
-}
-
-data "oci_core_vnic" "redis4_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.redis4_vnics.vnic_attachments.0.vnic_id
-}
-
-data "oci_core_vnic_attachments" "redis5_vnics" {
-  compartment_id      = var.compartment_ocid
-  availability_domain = local.availability_domain_name
-  instance_id         = oci_core_instance.redis5.id
-}
-
-data "oci_core_vnic" "redis5_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.redis5_vnics.vnic_attachments.0.vnic_id
-}
-
-data "oci_core_vnic_attachments" "redis6_vnics" {
-  compartment_id      = var.compartment_ocid
-  availability_domain = local.availability_domain_name
-  instance_id         = oci_core_instance.redis6.id
-}
-
-data "oci_core_vnic" "redis6_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.redis6_vnics.vnic_attachments.0.vnic_id
-}
 
 data "oci_identity_region_subscriptions" "home_region_subscriptions" {
   tenancy_id = var.tenancy_ocid

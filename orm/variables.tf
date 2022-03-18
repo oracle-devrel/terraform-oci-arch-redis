@@ -1,4 +1,4 @@
-## Copyright (c) 2021 Oracle and/or its affiliates.
+## Copyright (c) 2022 Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 variable "tenancy_ocid" {}
@@ -18,10 +18,14 @@ variable "availability_domain_number" {
 
 variable "release" {
   description = "Reference Architecture Release (OCI Architecture Center)"
-  default     = "1.2.1"
+  default     = "1.3"
 }
 
 variable "use_existing_vcn" {
+  default = false
+}
+
+variable "use_redis_oci_logging" {
   default = false
 }
 
@@ -31,6 +35,26 @@ variable "vcn_id" {
 
 variable "redis_subnet_id" {
   default = ""
+}
+
+variable "use_private_subnet" {
+  default = false
+}
+
+variable "bastion_server_public_ip" {
+  default = ""
+}
+
+variable "numberOfMasterNodes" {
+  default = 3
+}
+
+variable "numberOfReplicaNodes" {
+  default = 3
+}
+
+variable "cluster_enabled" {
+  default = true
 }
 
 variable "VCN-CIDR" {
@@ -46,7 +70,7 @@ variable "redis-prefix" {
 }
 
 variable "redis_version" {
-  default = "5.0.7"
+  default = "6.2.6"
 }
 
 variable "redis_port1" {
@@ -77,7 +101,7 @@ variable "linux_os_version" {
 
 variable "instance_shape" {
   description = "Instance Shape"
-  default     = "VM.Standard.E3.Flex"
+  default     = "VM.Standard.E4.Flex"
 }
 
 
@@ -99,10 +123,12 @@ locals {
 
 # Checks if is using Flexible Compute Shapes
 locals {
-  is_flexible_node_shape   = contains(local.compute_flexible_shapes, var.instance_shape)
-  availability_domain_name = var.availability_domain_name == "" ? lookup(data.oci_identity_availability_domains.ADs.availability_domains[var.availability_domain_number], "name") : var.availability_domain_name
-  redis_subnet_id          = !var.use_existing_vcn ? oci_core_subnet.redis-subnet[0].id : var.redis_subnet_id
-  vcn_id                   = !var.use_existing_vcn ? oci_core_virtual_network.redis-vcn[0].id : var.vcn_id
+  is_flexible_node_shape              = contains(local.compute_flexible_shapes, var.instance_shape)
+  availability_domain_name            = var.availability_domain_name == "" ? lookup(data.oci_identity_availability_domains.ADs.availability_domains[var.availability_domain_number], "name") : var.availability_domain_name
+  redis_subnet_id                     = !var.use_existing_vcn ? oci_core_subnet.redis-subnet[0].id : var.redis_subnet_id
+  vcn_id                              = !var.use_existing_vcn ? oci_core_virtual_network.redis-vcn[0].id : var.vcn_id
+  redis_master_private_ips_with_port  = join(":6379 ", data.oci_core_vnic.redis_master_vnic[*]["private_ip_address"])
+  redis_replica_private_ips_with_port = join(":6379 ", data.oci_core_vnic.redis_replica_vnic[*]["private_ip_address"])
 }
 
 

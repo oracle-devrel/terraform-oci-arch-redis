@@ -1,4 +1,4 @@
-## Copyright (c) 2021 Oracle and/or its affiliates.
+## Copyright (c) 2022 Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 variable "tenancy_ocid" {}
@@ -24,6 +24,10 @@ module "oci-arch-redis" {
   region           = var.region
   private_key_path = var.private_key_path
   compartment_ocid = var.compartment_ocid
+  # Cluster scenario (bare minimum = 3 masterVMs, 3 replicaVMs)
+  numberOfMasterNodes  = 3
+  numberOfReplicaNodes = 3
+  cluster_enabled      = true
 }
 
 output "generated_ssh_private_key" {
