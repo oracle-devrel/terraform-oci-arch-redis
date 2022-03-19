@@ -19,15 +19,14 @@ output "redis-replicas_private_ips" {
   value = data.oci_core_vnic.redis_replica_vnic.*.private_ip_address
 }
 
-output "redis-masters_private_ips_with_ports" {
-  value = local.redis_master_private_ips_with_port
-}
-
-output "redis-replicas_private_ips_with_ports" {
-  value = local.redis_replica_private_ips_with_port
-}
-
-
 output "redis_password" {
   value = random_string.redis_password.result
+}
+
+output "bastion_ssh_redis_master_session_metadata" {
+  value = oci_bastion_session.ssh_redis_master_session.*.ssh_metadata
+}
+
+output "bastion_ssh_redis_replica_session_metadata" {
+  value = oci_bastion_session.ssh_redis_replica_session.*.ssh_metadata
 }

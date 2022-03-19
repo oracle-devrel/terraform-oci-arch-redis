@@ -44,8 +44,8 @@ data "template_file" "redis_bootstrap_cluster_template" {
   }
 }
 
-resource "null_resource" "redis_master_bootstrap" {
-  count      = var.numberOfMasterNodes
+resource "null_resource" "redis_master_bootstrap_without_bastion" {
+  count      = local.redis_master_bootstrap_without_bastion
   depends_on = [oci_core_instance.redis_master, oci_core_instance.redis_replica]
 
   provisioner "file" {
@@ -79,8 +79,51 @@ resource "null_resource" "redis_master_bootstrap" {
   }
 }
 
-resource "null_resource" "redis_replica_bootstrap" {
-  count      = var.numberOfReplicaNodes
+resource "null_resource" "redis_master_bootstrap_with_bastion" {
+  count      = local.redis_master_bootstrap_with_bastion
+  depends_on = [oci_core_instance.redis_master, oci_core_instance.redis_replica]
+
+  provisioner "file" {
+    connection {
+      type                = "ssh"
+      user                = "opc"
+      host                = data.oci_core_vnic.redis_master_vnic[count.index].private_ip_address
+      private_key         = tls_private_key.public_private_key_pair.private_key_pem
+      script_path         = "/home/opc/myssh.sh"
+      agent               = false
+      timeout             = "10m"
+      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_port        = "22" 
+      bastion_user        = oci_bastion_session.ssh_redis_master_session[count.index].id 
+      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
+    }
+
+    content     = data.template_file.redis_bootstrap_master_template[count.index].rendered
+    destination = "~/redis_bootstrap_master.sh"
+  }
+  provisioner "remote-exec" {
+    connection {
+      type                = "ssh"
+      user                = "opc"
+      host                = data.oci_core_vnic.redis_master_vnic[count.index].private_ip_address
+      private_key         = tls_private_key.public_private_key_pair.private_key_pem
+      script_path         = "/home/opc/myssh.sh"
+      agent               = false
+      timeout             = "10m"
+      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_port        = "22" 
+      bastion_user        = oci_bastion_session.ssh_redis_master_session[count.index].id 
+      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
+    }
+    inline = [
+      "chmod +x ~/redis_bootstrap_master.sh",
+      "sudo ~/redis_bootstrap_master.sh",
+    ]
+  }
+}
+
+resource "null_resource" "redis_replica_bootstrap_without_bastion" {
+  count      = local.redis_replica_bootstrap_without_bastion
   depends_on = [oci_core_instance.redis_master, oci_core_instance.redis_replica]
 
   provisioner "file" {
@@ -114,9 +157,52 @@ resource "null_resource" "redis_replica_bootstrap" {
   }
 }
 
-resource "null_resource" "redis_cluster_startup" {
-  count      = var.cluster_enabled ? 1 : 0
-  depends_on = [null_resource.redis_master_bootstrap, null_resource.redis_replica_bootstrap]
+resource "null_resource" "redis_replica_bootstrap_with_bastion" {
+  count      = local.redis_replica_bootstrap_with_bastion
+  depends_on = [oci_core_instance.redis_master, oci_core_instance.redis_replica]
+
+  provisioner "file" {
+    connection {
+      type                = "ssh"
+      user                = "opc"
+      host                = data.oci_core_vnic.redis_replica_vnic[count.index].private_ip_address
+      private_key         = tls_private_key.public_private_key_pair.private_key_pem
+      script_path         = "/home/opc/myssh.sh"
+      agent               = false
+      timeout             = "10m"
+      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_port        = "22" 
+      bastion_user        = oci_bastion_session.ssh_redis_replica_session[count.index].id 
+      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
+    }
+
+    content     = data.template_file.redis_bootstrap_replica_template[count.index].rendered
+    destination = "~/redis_bootstrap_replica.sh"
+  }
+  provisioner "remote-exec" {
+    connection {
+      type                = "ssh"
+      user                = "opc"
+      host                = data.oci_core_vnic.redis_replica_vnic[count.index].private_ip_address
+      private_key         = tls_private_key.public_private_key_pair.private_key_pem
+      script_path         = "/home/opc/myssh.sh"
+      agent               = false
+      timeout             = "10m"
+      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_port        = "22" 
+      bastion_user        = oci_bastion_session.ssh_redis_replica_session[count.index].id 
+      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
+    }
+    inline = [
+      "chmod +x ~/redis_bootstrap_replica.sh",
+      "sudo ~/redis_bootstrap_replica.sh",
+    ]
+  }
+}
+
+resource "null_resource" "redis_cluster_setup_without_bastion" {
+  count      = local.redis_cluster_without_bastion
+  depends_on = [null_resource.redis_master_bootstrap_without_bastion, null_resource.redis_replica_bootstrap_without_bastion]
 
   provisioner "file" {
     connection {
@@ -141,6 +227,49 @@ resource "null_resource" "redis_cluster_startup" {
       script_path = "/home/opc/myssh.sh"
       agent       = false
       timeout     = "10m"
+    }
+    inline = [
+      "chmod +x ~/redis_bootstrap_cluster.sh",
+      "sudo ~/redis_bootstrap_cluster.sh",
+    ]
+  }
+}
+
+resource "null_resource" "redis_cluster_setup_with_bastion" {
+  count      = local.redis_cluster_with_bastion
+  depends_on = [null_resource.redis_master_bootstrap_with_bastion, null_resource.redis_replica_bootstrap_with_bastion]
+
+  provisioner "file" {
+    connection {
+      type                = "ssh"
+      user                = "opc"
+      host                = data.oci_core_vnic.redis_master_vnic[0].private_ip_address
+      private_key         = tls_private_key.public_private_key_pair.private_key_pem
+      script_path         = "/home/opc/myssh.sh"
+      agent               = false
+      timeout             = "10m"
+      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_port        = "22" 
+      bastion_user        = oci_bastion_session.ssh_redis_master_session[0].id 
+      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
+    }
+
+    content     = data.template_file.redis_bootstrap_cluster_template[0].rendered
+    destination = "~/redis_bootstrap_cluster.sh"
+  }
+  provisioner "remote-exec" {
+    connection {
+      type                = "ssh"
+      user                = "opc"
+      host                = data.oci_core_vnic.redis_master_vnic[0].private_ip_address
+      private_key         = tls_private_key.public_private_key_pair.private_key_pem
+      script_path         = "/home/opc/myssh.sh"
+      agent               = false
+      timeout             = "10m"
+      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_port        = "22" 
+      bastion_user        = oci_bastion_session.ssh_redis_master_session[0].id 
+      bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
     }
     inline = [
       "chmod +x ~/redis_bootstrap_cluster.sh",

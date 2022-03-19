@@ -18,7 +18,7 @@ variable "availability_domain_number" {
 
 variable "release" {
   description = "Reference Architecture Release (OCI Architecture Center)"
-  default     = "1.3"
+  default     = "1.4"
 }
 
 variable "use_existing_vcn" {
@@ -123,12 +123,20 @@ locals {
 
 # Checks if is using Flexible Compute Shapes
 locals {
-  is_flexible_node_shape              = contains(local.compute_flexible_shapes, var.instance_shape)
-  availability_domain_name            = var.availability_domain_name == "" ? lookup(data.oci_identity_availability_domains.ADs.availability_domains[var.availability_domain_number], "name") : var.availability_domain_name
-  redis_subnet_id                     = !var.use_existing_vcn ? oci_core_subnet.redis-subnet[0].id : var.redis_subnet_id
-  vcn_id                              = !var.use_existing_vcn ? oci_core_virtual_network.redis-vcn[0].id : var.vcn_id
-  redis_master_private_ips_with_port  = join(":6379 ", data.oci_core_vnic.redis_master_vnic[*]["private_ip_address"])
-  redis_replica_private_ips_with_port = join(":6379 ", data.oci_core_vnic.redis_replica_vnic[*]["private_ip_address"])
+  is_flexible_node_shape                  = contains(local.compute_flexible_shapes, var.instance_shape)
+  availability_domain_name                = var.availability_domain_name == "" ? lookup(data.oci_identity_availability_domains.ADs.availability_domains[var.availability_domain_number], "name") : var.availability_domain_name
+  redis_subnet_id                         = !var.use_existing_vcn ? oci_core_subnet.redis-subnet[0].id : var.redis_subnet_id
+  vcn_id                                  = !var.use_existing_vcn ? oci_core_virtual_network.redis-vcn[0].id : var.vcn_id
+  redis_master_private_ips_with_port      = join(":6379 ", data.oci_core_vnic.redis_master_vnic[*]["private_ip_address"])
+  redis_replica_private_ips_with_port     = join(":6379 ", data.oci_core_vnic.redis_replica_vnic[*]["private_ip_address"])
+  redis_master_bastion_count              = var.use_private_subnet ? var.numberOfMasterNodes : 0
+  redis_replica_bastion_count             = var.use_private_subnet ? var.numberOfReplicaNodes : 0
+  redis_master_bootstrap_without_bastion  = var.use_private_subnet ? 0 : var.numberOfMasterNodes
+  redis_replica_bootstrap_without_bastion = var.use_private_subnet ? 0 : var.numberOfReplicaNodes 
+  redis_master_bootstrap_with_bastion     = var.use_private_subnet ? var.numberOfMasterNodes : 0
+  redis_replica_bootstrap_with_bastion    = var.use_private_subnet ? var.numberOfReplicaNodes : 0 
+  redis_cluster_without_bastion           = !var.use_private_subnet && var.cluster_enabled ? 1 : 0
+  redis_cluster_with_bastion              = var.use_private_subnet && var.cluster_enabled ? 1 : 0
 }
 
 
