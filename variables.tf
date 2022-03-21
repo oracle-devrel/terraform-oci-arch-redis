@@ -41,7 +41,19 @@ variable "use_private_subnet" {
   default = false
 }
 
+variable "use_bastion_service" {
+  default = true
+}
+
+variable "inject_bastion_service_id" {
+  default = false
+}
+
 variable "bastion_server_public_ip" {
+  default = ""
+}
+
+variable "bastion_service_id" {
   default = ""
 }
 
@@ -129,8 +141,8 @@ locals {
   vcn_id                                  = !var.use_existing_vcn ? oci_core_virtual_network.redis-vcn[0].id : var.vcn_id
   redis_master_private_ips_with_port      = join(":6379 ", data.oci_core_vnic.redis_master_vnic[*]["private_ip_address"])
   redis_replica_private_ips_with_port     = join(":6379 ", data.oci_core_vnic.redis_replica_vnic[*]["private_ip_address"])
-  redis_master_bastion_count              = var.use_private_subnet ? var.numberOfMasterNodes : 0
-  redis_replica_bastion_count             = var.use_private_subnet ? var.numberOfReplicaNodes : 0
+  redis_master_bastion_count              = var.use_private_subnet && var.use_bastion_service ? var.numberOfMasterNodes : 0
+  redis_replica_bastion_count             = var.use_private_subnet && var.use_bastion_service ? var.numberOfReplicaNodes : 0
   redis_master_bootstrap_without_bastion  = var.use_private_subnet ? 0 : var.numberOfMasterNodes
   redis_replica_bootstrap_without_bastion = var.use_private_subnet ? 0 : var.numberOfReplicaNodes 
   redis_master_bootstrap_with_bastion     = var.use_private_subnet ? var.numberOfMasterNodes : 0

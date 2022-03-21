@@ -92,9 +92,9 @@ resource "null_resource" "redis_master_bootstrap_with_bastion" {
       script_path         = "/home/opc/myssh.sh"
       agent               = false
       timeout             = "10m"
-      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_host        = var.use_private_subnet && var.use_bastion_service ? "host.bastion.${var.region}.oci.oraclecloud.com" : var.bastion_server_public_ip
       bastion_port        = "22" 
-      bastion_user        = oci_bastion_session.ssh_redis_master_session[count.index].id 
+      bastion_user        = var.use_private_subnet && var.use_bastion_service ? oci_bastion_session.ssh_redis_master_session[count.index].id : "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
     }
 
@@ -110,9 +110,9 @@ resource "null_resource" "redis_master_bootstrap_with_bastion" {
       script_path         = "/home/opc/myssh.sh"
       agent               = false
       timeout             = "10m"
-      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_host        = var.use_private_subnet && var.use_bastion_service ? "host.bastion.${var.region}.oci.oraclecloud.com" : var.bastion_server_public_ip
       bastion_port        = "22" 
-      bastion_user        = oci_bastion_session.ssh_redis_master_session[count.index].id 
+      bastion_user        = var.use_private_subnet && var.use_bastion_service ? oci_bastion_session.ssh_redis_master_session[count.index].id : "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
     }
     inline = [
@@ -170,9 +170,9 @@ resource "null_resource" "redis_replica_bootstrap_with_bastion" {
       script_path         = "/home/opc/myssh.sh"
       agent               = false
       timeout             = "10m"
-      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_host        = var.use_private_subnet && var.use_bastion_service ? "host.bastion.${var.region}.oci.oraclecloud.com" : var.bastion_server_public_ip
       bastion_port        = "22" 
-      bastion_user        = oci_bastion_session.ssh_redis_replica_session[count.index].id 
+      bastion_user        = var.use_private_subnet && var.use_bastion_service ? oci_bastion_session.ssh_redis_replica_session[count.index].id : "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
     }
 
@@ -188,9 +188,9 @@ resource "null_resource" "redis_replica_bootstrap_with_bastion" {
       script_path         = "/home/opc/myssh.sh"
       agent               = false
       timeout             = "10m"
-      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_host        = var.use_private_subnet && var.use_bastion_service ? "host.bastion.${var.region}.oci.oraclecloud.com" : var.bastion_server_public_ip
       bastion_port        = "22" 
-      bastion_user        = oci_bastion_session.ssh_redis_replica_session[count.index].id 
+      bastion_user        = var.use_private_subnet && var.use_bastion_service ? oci_bastion_session.ssh_redis_replica_session[count.index].id : "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
     }
     inline = [
@@ -248,9 +248,9 @@ resource "null_resource" "redis_cluster_setup_with_bastion" {
       script_path         = "/home/opc/myssh.sh"
       agent               = false
       timeout             = "10m"
-      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_host        = var.use_private_subnet && var.use_bastion_service ? "host.bastion.${var.region}.oci.oraclecloud.com" : var.bastion_server_public_ip
       bastion_port        = "22" 
-      bastion_user        = oci_bastion_session.ssh_redis_master_session[0].id 
+      bastion_user        = var.use_private_subnet && var.use_bastion_service ? oci_bastion_session.ssh_redis_replica_session[count.index].id : "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
     }
 
@@ -266,9 +266,9 @@ resource "null_resource" "redis_cluster_setup_with_bastion" {
       script_path         = "/home/opc/myssh.sh"
       agent               = false
       timeout             = "10m"
-      bastion_host        = "host.bastion.${var.region}.oci.oraclecloud.com"
+      bastion_host        = var.use_private_subnet && var.use_bastion_service ? "host.bastion.${var.region}.oci.oraclecloud.com" : var.bastion_server_public_ip
       bastion_port        = "22" 
-      bastion_user        = oci_bastion_session.ssh_redis_master_session[0].id 
+      bastion_user        = var.use_private_subnet && var.use_bastion_service ? oci_bastion_session.ssh_redis_replica_session[count.index].id : "opc"
       bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem 
     }
     inline = [

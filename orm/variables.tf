@@ -41,7 +41,19 @@ variable "use_private_subnet" {
   default = false
 }
 
+variable "use_bastion_service" {
+  default = true
+}
+
 variable "bastion_server_public_ip" {
+  default = ""
+}
+
+variable "inject_bastion_service_id" {
+  default = false
+}
+
+variable "bastion_service_id" {
   default = ""
 }
 

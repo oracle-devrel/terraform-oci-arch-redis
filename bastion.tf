@@ -2,7 +2,7 @@
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 resource "oci_bastion_bastion" "bastion-service" {
-  count                        = var.use_private_subnet ? 1 : 0
+  count                        = var.use_private_subnet && var.use_bastion_service && !var.inject_bastion_service_id ? 1 : 0
   bastion_type                 = "STANDARD"
   compartment_id               = var.compartment_ocid
   target_subnet_id             = !var.use_existing_vcn ? oci_core_subnet.redis-subnet[0].id : var.redis_subnet_id
@@ -16,7 +16,7 @@ resource "oci_bastion_session" "ssh_redis_master_session" {
   depends_on = [oci_core_instance.redis_master]
   
   count      = local.redis_master_bastion_count
-  bastion_id = oci_bastion_bastion.bastion-service[0].id
+  bastion_id = var.bastion_service_id == "" ? oci_bastion_bastion.bastion-service[0].id : var.bastion_service_id
 
   key_details {
     public_key_content = tls_private_key.public_private_key_pair.public_key_openssh
@@ -39,7 +39,7 @@ resource "oci_bastion_session" "ssh_redis_replica_session" {
   depends_on = [oci_core_instance.redis_replica]
 
   count      = local.redis_replica_bastion_count
-  bastion_id = oci_bastion_bastion.bastion-service[0].id
+  bastion_id = var.bastion_service_id == "" ? oci_bastion_bastion.bastion-service[0].id : var.bastion_service_id
 
   key_details {
     public_key_content = tls_private_key.public_private_key_pair.public_key_openssh
