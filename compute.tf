@@ -35,10 +35,23 @@ resource "oci_core_instance" "redis_master" {
     }
   }
 
+  dynamic "agent_config" {
+    for_each = var.use_private_subnet ? [1] : []
+    content {
+      are_all_plugins_disabled = false
+      is_management_disabled   = false
+      is_monitoring_disabled   = false
+      plugins_config {
+        desired_state = "ENABLED"
+        name          = "Bastion"
+      }
+    }
+  }
+
   create_vnic_details {
     subnet_id        = !var.use_existing_vcn ? oci_core_subnet.redis-subnet[0].id : var.redis_subnet_id
     display_name     = "primaryvnic"
-    assign_public_ip = true
+    assign_public_ip = var.use_private_subnet ? false : true
     hostname_label   = "${var.redis-prefix}${count.index+1}"
   }
 
@@ -50,6 +63,10 @@ resource "oci_core_instance" "redis_master" {
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
     user_data           = data.template_cloudinit_config.cloud_init.rendered
+  }
+
+  provisioner "local-exec" {
+    command = "sleep 240"
   }
 
   defined_tags = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
@@ -70,10 +87,24 @@ resource "oci_core_instance" "redis_replica" {
       ocpus         = var.instance_flex_shape_ocpus
     }
   }
+
+  dynamic "agent_config" {
+    for_each = var.use_private_subnet ? [1] : []
+    content {
+      are_all_plugins_disabled = false
+      is_management_disabled   = false
+      is_monitoring_disabled   = false
+      plugins_config {
+        desired_state = "ENABLED"
+        name          = "Bastion"
+      }
+    }
+  }
+
   create_vnic_details {
     subnet_id        = !var.use_existing_vcn ? oci_core_subnet.redis-subnet[0].id : var.redis_subnet_id
     display_name     = "primaryvnic"
-    assign_public_ip = true
+    assign_public_ip = var.use_private_subnet ? false : true
     hostname_label   = "${var.redis-prefix}${count.index+1+var.numberOfMasterNodes}"
   }
 
@@ -85,6 +116,10 @@ resource "oci_core_instance" "redis_replica" {
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
     user_data           = data.template_cloudinit_config.cloud_init.rendered
+  }
+
+  provisioner "local-exec" {
+    command = "sleep 240"
   }
 
   defined_tags = { "${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
