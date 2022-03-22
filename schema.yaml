@@ -20,6 +20,9 @@ variableGroups:
   - use_private_subnet
   - bastion_server_public_ip
   - availability_domain_number
+  - bastion_service_id
+  - inject_bastion_service_id
+  - use_bastion_service
 
 - title: Required Configuration
   visible: true  
