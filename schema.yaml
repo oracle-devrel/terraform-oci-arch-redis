@@ -65,6 +65,8 @@ variableGroups:
   - instance_flex_shape_memory
   - instance_os
   - linux_os_version
+  - add_iscsi_volume
+  - iscsi_volume_size_in_gbs
     
 variables:
 
@@ -272,8 +274,27 @@ variables:
     description: "Choose Operating system version for Redis compute instances."
     enum:
       - "7.9"
-      - "7.8"
-  
+
+  add_iscsi_volume:
+    type: boolean
+    title: "Add iSCSI Volume to compute?"
+    description: "Check the box to add iSCSI Volume to compute instance."
+    visible: true
+    default: true
+
+  iscsi_volume_size_in_gbs:
+    type: number
+    title: "iSCSI Volume Size in GB"
+    description: "Choose the size of iSCSI volume attached to compute instance (default=100GB, min=50GB, max=32000GB)."
+    required: false
+    minimum: 50
+    maximum: 32000
+    multipleOf: 1
+    default: 100    
+    visible: 
+      and:
+        - add_iscsi_volume  
+
   release:
     type: string
     required: false
