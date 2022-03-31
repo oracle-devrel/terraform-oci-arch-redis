@@ -96,6 +96,46 @@ module "terraform-oci-arch-redis" {
 }
 ```
 
+Argument | Description
+--- | ---
+tenancy_ocid | OCI Tenancy OCID for Terraform's OCI authentication.
+user_ocid | OCI User's OCID used for Terraform's OCI authentication.
+fingerprint | OCI User's fingerprint for Terraform's OCI authentication.
+region | OCI Region for Terraform's OCI authentication.
+compartment_ocid | Compartment's OCID where Redis will be provisioned.
+availability_domain_name | The Availability Domain Name for Redis deployment.
+availability_domain_number | The Availability Domain Number for Redis deployment.
+use_existing_vcn | If you want to inject already exisitng VCN then you need to set the value to TRUE.
+vcn_cidr | If use_existing_vcn is set to FALSE then you can define VCN CIDR block and then it will used to 
+create VCN within the module.
+vcn_id | If use_existing_vcn is set to TRUE then you can pass VCN OCID and module will use it to create Redis installation.
+use_redis_oci_logging | If you want to enable OCI Logging for Redis then set to TRUE (be default FALSE).
+redis_subnet_id | If use_existing_vcn is set to TRUE then you can pass Redis Subnet OCID and module will use it to create Redis installation.
+use_private_subnet | If you want to nest Redis in private subnet then set to TRUE.
+use_bastion_service | If you want to use OCI Bastion Service then you need to set the value to TRUE.
+inject_bastion_service_id | Instead of counting on module to create Bastion Service you can pass Bastion Service OCID as input (set value to TRUE).
+bastion_service_id | If inject_bastion_service_id is set to TRUE then you can pass here Bastion Service OCID as input.
+inject_bastion_server_public_ip  | Instead of counting on module to create Bastion VM you can pass Bastion Host Public IP Address as input (set value to TRUE).
+bastion_server_public_ip | If inject_bastion_server_public_ip is set to TRUE then you can pass here Bastion Host Public IP Address.
+numberOfMasterNodes | You can define number of Master nodes (for Sentinel monitoring bare minimum is 1).
+numberOfReplicaNodes | You can define number of Replica nodes (for Sentinel monitoring bare minimum is 2).
+cluster_enabled | If you want to use Redis cluster (in-memory sharding) then you can set it to TRUE. In that case you need to have numberOfMasterNodes=3 and numberOfReplicaNodes=3 (bare minimum).
+VCN-CIDR | You can define CIDR block for VCN (only when use_existing_vcn=FALSE).
+Subnet-CIDR | You can define CIDR block for Subnet (only when use_existing_vcn=FALSE).
+redis-prefix | Prefix for VM node's name (default="redis")
+redis_version | Version of Redis.
+redis_port1 | Port1 for Redis (default=6379).
+redis_port2 | Port1 for Redis (default=16379).
+sentinel_port | Port for Sentinel (default=26379).
+ssh_public_key | SSH Public key.
+instance_os | Operating system for compute instances (default="Oracle Linux").
+linux_os_version | Operating system version for all Linux instances (defaulf="7.9").
+instance_shape | Instance Shape (default="VM.Standard.E4.Flex").
+instance_flex_shape_ocpus | For Flex shapes OCPU (default=1).
+instance_flex_shape_memory  | For Flex shapes memory in GB (default=10).
+add_iscsi_volume | If you want to deploy Redis on attached iSCSI disk (block volume) then set the value to TRUE.
+iscsi_volume_size_in_gbs | If add_iscsi_volume=TRUE then you can define the size of the iSCSI block volume (default=100).
+
 ## Contributing
 This project is open source.  Please submit your contributions by forking this repository and submitting a pull request!  Oracle appreciates any contributions that are made by the open source community.
 

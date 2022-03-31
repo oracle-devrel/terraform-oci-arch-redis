@@ -26,9 +26,25 @@ cd redis-${redis_version}
 make install
 
 export cluster_enabled='${cluster_enabled}'
+export add_iscsi_volume='${add_iscsi_volume}'
 
 if [[ $cluster_enabled == "true" ]]; then
-# Configure Redis Config File
+	if [[ $add_iscsi_volume == "true" ]]; then
+
+cat << EOF > $REDIS_CONFIG_FILE
+port ${redis_port1}
+dir /redisvol/redis
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+cluster-slave-validity-factor 0
+appendonly yes
+requirepass ${redis_password}
+masterauth ${redis_password}
+
+EOF
+	else 
+
 cat << EOF > $REDIS_CONFIG_FILE
 port ${redis_port1}
 dir /home/redis/redis
@@ -41,8 +57,21 @@ requirepass ${redis_password}
 masterauth ${redis_password}
 
 EOF
+	fi 	
 else
-# Configure Redis Config File
+	if [[ $add_iscsi_volume == "true" ]]; then
+
+cat << EOF > $REDIS_CONFIG_FILE
+port ${redis_port1}
+dir /redisvol/redis
+cluster-enabled no
+appendonly yes
+requirepass ${redis_password}
+masterauth ${redis_password}
+EOF
+
+	else 
+
 cat << EOF > $REDIS_CONFIG_FILE
 port ${redis_port1}
 dir /home/redis/redis
@@ -51,9 +80,24 @@ appendonly yes
 requirepass ${redis_password}
 masterauth ${redis_password}
 EOF
+
+	fi
+
 fi 
 
-# Configure Sentinel Config File
+if [[ $add_iscsi_volume == "true" ]]; then
+cat << EOF > $SENTINEL_CONFIG_FILE
+port ${sentinel_port}
+dir /redisvol/sentinel
+sentinel monitor ${master_fqdn} ${master_private_ip} ${redis_port1} 2
+sentinel auth-pass ${master_fqdn} ${redis_password}
+sentinel down-after-milliseconds ${master_fqdn} 60000
+sentinel failover-timeout ${master_fqdn} 180000
+sentinel parallel-syncs ${master_fqdn} 1
+
+EOF
+
+else
 cat << EOF > $SENTINEL_CONFIG_FILE
 port ${sentinel_port}
 dir /home/redis/sentinel
@@ -65,14 +109,24 @@ sentinel parallel-syncs ${master_fqdn} 1
 
 EOF
 
+fi
+
 sleep 30
 
 # Checks if the redis user already exists before attempting to create one
 id -u redis &>/dev/null || sudo useradd redis
-mkdir /home/redis/redis
-chown -R redis:redis /home/redis/redis
-mkdir /home/redis/sentinel
-chown -R redis:redis /home/redis/sentinel
+
+if [[ $add_iscsi_volume == "true" ]]; then
+	mkdir /redisvol/redis
+	chown -R redis:redis /redisvol/redis
+	mkdir /redisvol/sentinel
+	chown -R redis:redis /redisvol/sentinel
+else
+	mkdir /home/redis/redis
+	chown -R redis:redis /home/redis/redis
+	mkdir /home/redis/sentinel
+	chown -R redis:redis /home/redis/sentinel
+fi 
 
 # Configuring Redis Linux Service
 sudo tee /usr/lib/systemd/system/redis.service > /dev/null << EOF
