@@ -106,8 +106,8 @@ compartment_ocid | Compartment's OCID where Redis will be provisioned.
 availability_domain_name | The Availability Domain Name for Redis deployment.
 availability_domain_number | The Availability Domain Number for Redis deployment.
 use_existing_vcn | If you want to inject already exisitng VCN then you need to set the value to TRUE.
-vcn_cidr | If use_existing_vcn is set to FALSE then you can define VCN CIDR block and then it will used to 
-create VCN within the module.
+VCN-CIDR | You can define CIDR block for VCN (only when use_existing_vcn=FALSE).
+Subnet-CIDR | You can define CIDR block for Subnet (only when use_existing_vcn=FALSE).
 vcn_id | If use_existing_vcn is set to TRUE then you can pass VCN OCID and module will use it to create Redis installation.
 use_redis_oci_logging | If you want to enable OCI Logging for Redis then set to TRUE (be default FALSE).
 redis_subnet_id | If use_existing_vcn is set to TRUE then you can pass Redis Subnet OCID and module will use it to create Redis installation.
@@ -120,8 +120,6 @@ bastion_server_public_ip | If inject_bastion_server_public_ip is set to TRUE the
 numberOfMasterNodes | You can define number of Master nodes (for Sentinel monitoring bare minimum is 1).
 numberOfReplicaNodes | You can define number of Replica nodes (for Sentinel monitoring bare minimum is 2).
 cluster_enabled | If you want to use Redis cluster (in-memory sharding) then you can set it to TRUE. In that case you need to have numberOfMasterNodes=3 and numberOfReplicaNodes=3 (bare minimum).
-VCN-CIDR | You can define CIDR block for VCN (only when use_existing_vcn=FALSE).
-Subnet-CIDR | You can define CIDR block for Subnet (only when use_existing_vcn=FALSE).
 redis-prefix | Prefix for VM node's name (default="redis")
 redis_version | Version of Redis.
 redis_port1 | Port1 for Redis (default=6379).
