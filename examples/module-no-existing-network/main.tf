@@ -8,6 +8,15 @@ variable "private_key_path" {}
 variable "region" {}
 variable "compartment_ocid" {}
 
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    oci = {
+      source  = "oracle/oci"
+    }
+  }
+}
+
 provider "oci" {
   tenancy_ocid     = var.tenancy_ocid
   user_ocid        = var.user_ocid
@@ -16,7 +25,7 @@ provider "oci" {
   region           = var.region
 }
 
-module "oci-arch-redis" {
+module "arch-redis" {
   source           = "github.com/oracle-devrel/terraform-oci-arch-redis"
   tenancy_ocid     = var.tenancy_ocid
   user_ocid        = var.user_ocid
@@ -31,7 +40,7 @@ module "oci-arch-redis" {
 }
 
 output "generated_ssh_private_key" {
-  value     = module.oci-arch-redis.generated_ssh_private_key
+  value     = module.arch-redis.generated_ssh_private_key
   sensitive = true
 }
 

@@ -32,6 +32,7 @@ variableGroups:
   - numberOfMasterNodes
   - numberOfReplicaNodes
   - cluster_enabled
+  - visible_script_output
   - show_advanced 
 
 - title: Networking Optional Configuration
@@ -124,6 +125,12 @@ variables:
     title: "Redis prefix"
     description: "Name the prefix for all OCI resources (compute, VCN, subnet) that will be created."
   
+  visible_script_output:
+    type: boolean
+    title: "Show shell script output?"
+    description: "Check if you want to see detailed information from the execution of remote exec scripts."
+    default: true
+
   cluster_enabled:
     type: boolean
     title: "Enable Redis Cluster?"
