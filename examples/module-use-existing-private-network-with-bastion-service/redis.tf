@@ -2,8 +2,7 @@
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 module "arch-redis" {
-  #source                    = "github.com/oracle-devrel/terraform-oci-arch-redis"
-  source                    = "../../"
+  source                    = "github.com/oracle-devrel/terraform-oci-arch-redis"
   tenancy_ocid              = var.tenancy_ocid
   user_ocid                 = var.user_ocid
   fingerprint               = var.fingerprint
