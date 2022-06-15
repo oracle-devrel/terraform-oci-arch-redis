@@ -141,6 +141,10 @@ variable "iscsi_volume_size_in_gbs" {
   default = 100
 }
 
+variable "visible_script_output" {
+  default = true
+}
+
 # Checks if is using Flexible Compute Shapes
 locals {
   is_flexible_node_shape                      = contains(local.compute_flexible_shapes, var.instance_shape)
