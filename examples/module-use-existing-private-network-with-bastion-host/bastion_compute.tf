@@ -26,7 +26,7 @@ resource "oci_core_instance" "bastion" {
   }
 
   metadata = {
-    ssh_authorized_keys = module.oci-arch-redis.generated_ssh_public_key
+    ssh_authorized_keys = module.arch-redis.generated_ssh_public_key
   }
 
 }

@@ -18,7 +18,7 @@ variable "availability_domain_number" {
 
 variable "release" {
   description = "Reference Architecture Release (OCI Architecture Center)"
-  default     = "1.5"
+  default     = "1.6"
 }
 
 variable "use_existing_vcn" {
@@ -139,6 +139,10 @@ variable "add_iscsi_volume" {
 
 variable "iscsi_volume_size_in_gbs" {
   default = 100
+}
+
+variable "visible_script_output" {
+  default = true
 }
 
 # Checks if is using Flexible Compute Shapes

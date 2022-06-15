@@ -6,15 +6,16 @@ data "template_file" "redis_bootstrap_master_template" {
   template = file("${path.module}/scripts/redis_bootstrap_master.sh")
 
   vars = {
-    redis_version      = var.redis_version
-    redis_port1        = var.redis_port1
-    redis_port2        = var.redis_port2
-    sentinel_port      = var.sentinel_port
-    redis_password     = random_string.redis_password.result
-    master_private_ip  = data.oci_core_vnic.redis_master_vnic[count.index].private_ip_address
-    master_fqdn        = join("", [data.oci_core_vnic.redis_master_vnic[count.index].hostname_label, ".", var.redis-prefix, ".", var.redis-prefix, ".oraclevcn.com"])
-    cluster_enabled    = var.cluster_enabled
-    add_iscsi_volume   = var.add_iscsi_volume
+    redis_version         = var.redis_version
+    redis_port1           = var.redis_port1
+    redis_port2           = var.redis_port2
+    sentinel_port         = var.sentinel_port
+    redis_password        = random_string.redis_password.result
+    master_private_ip     = data.oci_core_vnic.redis_master_vnic[count.index].private_ip_address
+    master_fqdn           = join("", [data.oci_core_vnic.redis_master_vnic[count.index].hostname_label, ".", var.redis-prefix, ".", var.redis-prefix, ".oraclevcn.com"])
+    cluster_enabled       = var.cluster_enabled
+    add_iscsi_volume      = var.add_iscsi_volume
+    visible_script_output = var.visible_script_output ? "#" : ""
   }
 }
 
@@ -23,15 +24,16 @@ data "template_file" "redis_bootstrap_replica_template" {
   template = file("${path.module}/scripts/redis_bootstrap_replica.sh")
 
   vars = {
-    redis_version      = var.redis_version
-    redis_port1        = var.redis_port1
-    redis_port2        = var.redis_port2
-    sentinel_port      = var.sentinel_port
-    redis_password     = random_string.redis_password.result
-    master_private_ip  = data.oci_core_vnic.redis_master_vnic[0].private_ip_address
-    master_fqdn        = join("", [data.oci_core_vnic.redis_master_vnic[0].hostname_label, ".", var.redis-prefix, ".", var.redis-prefix, ".oraclevcn.com"])
-    cluster_enabled    = var.cluster_enabled
-    add_iscsi_volume   = var.add_iscsi_volume
+    redis_version         = var.redis_version
+    redis_port1           = var.redis_port1
+    redis_port2           = var.redis_port2
+    sentinel_port         = var.sentinel_port
+    redis_password        = random_string.redis_password.result
+    master_private_ip     = data.oci_core_vnic.redis_master_vnic[0].private_ip_address
+    master_fqdn           = join("", [data.oci_core_vnic.redis_master_vnic[0].hostname_label, ".", var.redis-prefix, ".", var.redis-prefix, ".oraclevcn.com"])
+    cluster_enabled       = var.cluster_enabled
+    add_iscsi_volume      = var.add_iscsi_volume
+    visible_script_output = var.visible_script_output ? "#" : ""
   }
 }
 
@@ -43,6 +45,7 @@ data "template_file" "redis_bootstrap_cluster_template" {
     redis_master_private_ips_with_port  = local.redis_master_private_ips_with_port
     redis_replica_private_ips_with_port = local.redis_replica_private_ips_with_port
     redis_password                      = random_string.redis_password.result
+    visible_script_output               = var.visible_script_output ? "#" : ""
   }
 }
 
